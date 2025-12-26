@@ -86,7 +86,7 @@ Crypto_MCP projesi temel kripto veri erişimi ile başarılı bir başlangıç y
 
 ---
 
-## 🎨 **Aşama 4: Kullanıcı Deneyimi (v2.0.0)**
+## 🎨 **Aşama 4: Kullanıcı Deneyimi (v2.0.0)** 🚧 **ŞU AN ÇALIŞILIYOR**
 
 ### **Hedef:** Kullanıcı dostu arayüz ve gelişmiş özellikler
 
@@ -160,19 +160,17 @@ Crypto_MCP projesi temel kripto veri erişimi ile başarılı bir başlangıç y
 
 ## 📊 **İlerleme Takibi**
 
-### **Mevcut Sprint (Şu an - 2 hafta)**
-- [x] Yeni exchange API'leri (Bybit, KuCoin) ✅
-- [x] DeFi protokolleri entegrasyonu (Uniswap) ✅
-- [x] SQLite veritabanı entegrasyonu ✅
-- [x] Matplotlib grafik görselleştirme ✅
-- [x] Real-time fiyat izleme ✅
-- [ ] NFT marketplace'leri (OpenSea)
-- [ ] Web scraping implementasyonu
+### **Mevcut Sprint (Şu an - 3 hafta)**
+- [ ] Rich CLI interface (rich library)
+- [ ] REST API wrapper
+- [ ] Web dashboard temel yapısı
+- [ ] Alert/notification sistemi
+- [ ] Docker containerization
 
 ### **Öncelik Sıralaması**
-1. **Yüksek:** Yeni veri kaynakları ve API entegrasyonları
-2. **Orta:** Real-time veri akışı ve veritabanı
-3. **Düşük:** Görselleştirme ve gelişmiş özellikler
+1. **Yüksek:** CLI interface ve REST API
+2. **Orta:** Temel web dashboard
+3. **Düşük:** Mobil uygulama ve gelişmiş özellikler
 
 ### **Risk Değerlendirmesi**
 - **Teknik Risk:** API rate limits, downtime

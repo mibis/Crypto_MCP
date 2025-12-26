@@ -11,6 +11,19 @@ import json
 import matplotlib.pyplot as plt
 import io
 import base64
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.text import Text
+from rich.progress import Progress, SpinnerColumn, TextColumn
+import argparse
+import sys
+from flask import Flask, jsonify, request, send_file
+from flask_cors import CORS
+import threading
+
+# Global variables
+alerts = []
 
 # Logging yapılandırması
 logging.basicConfig(
@@ -1596,6 +1609,691 @@ def start_price_monitoring(coin_id: str, interval_seconds: int = 60, duration_mi
         logger.error(f"Error in price monitoring: {e}")
         return f"Error monitoring price: {str(e)}"
 
+# CLI Interface functions
+console = Console()
+
+def display_price_table(coin_data: dict):
+    """Display cryptocurrency prices in a rich table format."""
+    table = Table(title="📊 Cryptocurrency Prices")
+    table.add_column("Coin", style="cyan", no_wrap=True)
+    table.add_column("Price (USD)", style="green", justify="right")
+    table.add_column("Source", style="yellow")
+    table.add_column("Time", style="magenta")
+
+    for coin, data in coin_data.items():
+        if isinstance(data, str):
+            # Parse price from string response
+            import re
+            price_match = re.search(r'\$([0-9,]+\.?[0-9]*)', data)
+            if price_match:
+                price = f"${price_match.group(1)}"
+                source_match = re.search(r'\(([^)]+)\)', data)
+                source = source_match.group(1) if source_match else "Unknown"
+                table.add_row(coin.upper(), price, source, datetime.now().strftime("%H:%M:%S"))
+        else:
+            table.add_row(coin.upper(), f"${data.get('price', 'N/A')}", data.get('source', 'Unknown'), datetime.now().strftime("%H:%M:%S"))
+
+    console.print(table)
+
+def display_portfolio_table():
+    """Display portfolio in a rich table format."""
+    try:
+        init_database()
+        conn = sqlite3.connect('crypto_data.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM portfolio ORDER BY purchase_date DESC')
+        rows = cursor.fetchall()
+        conn.close()
+
+        if not rows:
+            console.print("[yellow]No portfolio entries found.[/yellow]")
+            return
+
+        table = Table(title="💼 Portfolio Summary")
+        table.add_column("Coin", style="cyan", no_wrap=True)
+        table.add_column("Amount", style="green", justify="right")
+        table.add_column("Purchase Price", style="yellow", justify="right")
+        table.add_column("Current Value", style="blue", justify="right")
+        table.add_column("P&L", style="red", justify="right")
+        table.add_column("Date", style="magenta")
+
+        total_value = 0
+        total_pnl = 0
+
+        for row in rows:
+            coin_id, amount, purchase_price, purchase_date = row[1], row[2], row[3], row[4]
+
+            # Get current price
+            try:
+                current_price_data = get_crypto_price_with_fallback(coin_id)
+                import re
+                price_match = re.search(r'\$([0-9,]+\.?[0-9]*)', current_price_data)
+                current_price = float(price_match.group(1).replace(',', '')) if price_match else purchase_price
+            except:
+                current_price = purchase_price
+
+            current_value = amount * current_price
+            pnl = current_value - (amount * purchase_price)
+            pnl_percent = (pnl / (amount * purchase_price)) * 100
+
+            total_value += current_value
+            total_pnl += pnl
+
+            pnl_color = "green" if pnl >= 0 else "red"
+            table.add_row(
+                coin_id.upper(),
+                f"{amount:.4f}",
+                f"${purchase_price:.2f}",
+                f"${current_value:.2f}",
+                f"{'+' if pnl >= 0 else ''}${pnl:.2f} ({'+' if pnl >= 0 else ''}{pnl_percent:.1f}%)",
+                purchase_date.split()[0]
+            )
+
+        console.print(table)
+
+        # Summary panel
+        summary = Panel.fit(
+            f"[bold green]Total Value: ${total_value:.2f}[/bold green]\n"
+            f"[bold {'green' if total_pnl >= 0 else 'red'}]Total P&L: {'+' if total_pnl >= 0 else ''}${total_pnl:.2f}[/bold {'green' if total_pnl >= 0 else 'red'}]",
+            title="📈 Portfolio Summary"
+        )
+        console.print(summary)
+
+    except Exception as e:
+        console.print(f"[red]Error displaying portfolio: {e}[/red]")
+
+def display_market_overview():
+    """Display market overview with top coins."""
+    try:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Fetching market data...", total=None)
+
+            # Get market analysis
+            market_data = market_analysis()
+
+            progress.update(task, completed=True)
+
+        console.print(Panel.fit(market_data, title="🌍 Market Overview"))
+
+    except Exception as e:
+        console.print(f"[red]Error fetching market overview: {e}[/red]")
+
+def cli_price_command(args):
+    """Handle price command in CLI."""
+    coins = args.coins if args.coins else ["bitcoin"]
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task(f"Fetching prices for {', '.join(coins)}...", total=len(coins))
+
+        price_data = {}
+        for coin in coins:
+            try:
+                price = get_crypto_price_with_fallback(coin)
+                price_data[coin] = price
+            except Exception as e:
+                price_data[coin] = f"Error: {e}"
+            progress.advance(task)
+
+    display_price_table(price_data)
+
+def cli_portfolio_command(args):
+    """Handle portfolio command in CLI."""
+    if args.add:
+        coin, amount, price = args.add
+        try:
+            result = save_portfolio_to_db(coin, float(amount), float(price))
+            console.print(f"[green]✓ {result}[/green]")
+        except Exception as e:
+            console.print(f"[red]Error adding to portfolio: {e}[/red]")
+    else:
+        display_portfolio_table()
+
+def cli_market_command(args):
+    """Handle market command in CLI."""
+    display_market_overview()
+
+def cli_monitor_command(args):
+    """Handle monitor command in CLI."""
+    coin = args.coin
+    interval = args.interval
+    duration = args.duration
+
+    console.print(f"[yellow]Starting price monitoring for {coin}...[/yellow]")
+    console.print(f"[dim]Interval: {interval}s, Duration: {duration}min[/dim]")
+
+    try:
+        result = start_price_monitoring(coin, interval, duration)
+        console.print(Panel.fit(result, title=f"📊 Monitoring Results for {coin.upper()}"))
+    except Exception as e:
+        console.print(f"[red]Error during monitoring: {e}[/red]")
+
+def cli_alert_command(args):
+    """Handle alert command in CLI."""
+    if args.create:
+        coin, price, condition = args.create
+        try:
+            alert = {
+                'id': len(alerts) + 1,
+                'coin_id': coin,
+                'target_price': float(price),
+                'condition': condition,
+                'alert_type': 'price',
+                'created_at': datetime.now(),
+                'active': True
+            }
+            alerts.append(alert)
+            console.print(f"[green]✓ Alert created: {coin.upper()} {condition} ${price}[/green]")
+        except Exception as e:
+            console.print(f"[red]Error creating alert: {e}[/red]")
+    elif args.list:
+        active_alerts = [alert for alert in alerts if alert['active']]
+        if not active_alerts:
+            console.print("[yellow]No active alerts.[/yellow]")
+        else:
+            table = Table(title="📊 Active Alerts")
+            table.add_column("ID", style="cyan", justify="right")
+            table.add_column("Coin", style="yellow")
+            table.add_column("Condition", style="green")
+            table.add_column("Target Price", style="red", justify="right")
+            table.add_column("Created", style="magenta")
+
+            for alert in active_alerts:
+                table.add_row(
+                    str(alert['id']),
+                    alert['coin_id'].upper(),
+                    alert['condition'],
+                    f"${alert['target_price']}",
+                    alert['created_at'].strftime('%Y-%m-%d %H:%M')
+                )
+            console.print(table)
+    elif args.check:
+        triggered = []
+        for alert in alerts:
+            if not alert['active']:
+                continue
+
+            try:
+                price_data = get_crypto_price_with_fallback(alert['coin_id'])
+                import re
+                price_match = re.search(r'\$([0-9,]+\.?[0-9]*)', price_data)
+                if price_match:
+                    current_price = float(price_match.group(1).replace(',', ''))
+
+                    triggered_condition = False
+                    if alert['condition'] == 'above' and current_price >= alert['target_price']:
+                        triggered_condition = True
+                    elif alert['condition'] == 'below' and current_price <= alert['target_price']:
+                        triggered_condition = True
+
+                    if triggered_condition:
+                        alert['triggered_at'] = datetime.now()
+                        alert['trigger_price'] = current_price
+                        alert['active'] = False
+                        triggered.append(alert)
+
+            except Exception as e:
+                console.print(f"[red]Error checking alert for {alert['coin_id']}: {e}[/red]")
+
+        if not triggered:
+            console.print("[green]No alerts triggered. All active alerts are still monitoring.[/green]")
+        else:
+            table = Table(title="🚨 Triggered Alerts")
+            table.add_column("Coin", style="cyan")
+            table.add_column("Condition", style="yellow")
+            table.add_column("Target", style="red", justify="right")
+            table.add_column("Current", style="green", justify="right")
+            table.add_column("Triggered", style="magenta")
+
+            for alert in triggered:
+                table.add_row(
+                    alert['coin_id'].upper(),
+                    alert['condition'],
+                    f"${alert['target_price']}",
+                    f"${alert['trigger_price']:.2f}",
+                    alert['triggered_at'].strftime('%H:%M:%S')
+                )
+            console.print(table)
+
+def create_cli_parser():
+    """Create command line argument parser."""
+    parser = argparse.ArgumentParser(
+        description="Crypto_MCP - Cryptocurrency Analysis Tool",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python crypto_mcp.py price bitcoin ethereum
+  python crypto_mcp.py portfolio --add bitcoin 1.5 45000
+  python crypto_mcp.py market
+  python crypto_mcp.py monitor bitcoin --interval 30 --duration 2
+  python crypto_mcp.py alert --create bitcoin 50000 above
+  python crypto_mcp.py alert --list
+  python crypto_mcp.py alert --check
+        """
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # Price command
+    price_parser = subparsers.add_parser('price', help='Get cryptocurrency prices')
+    price_parser.add_argument('coins', nargs='*', help='Coin names (default: bitcoin)')
+    price_parser.set_defaults(func=cli_price_command)
+
+    # Portfolio command
+    portfolio_parser = subparsers.add_parser('portfolio', help='Manage portfolio')
+    portfolio_parser.add_argument('--add', nargs=3, metavar=('COIN', 'AMOUNT', 'PRICE'),
+                                 help='Add to portfolio: COIN AMOUNT PRICE')
+    portfolio_parser.set_defaults(func=cli_portfolio_command)
+
+    # Market command
+    market_parser = subparsers.add_parser('market', help='Show market overview')
+    market_parser.set_defaults(func=cli_market_command)
+
+    # Monitor command
+    monitor_parser = subparsers.add_parser('monitor', help='Monitor price in real-time')
+    monitor_parser.add_argument('coin', help='Coin to monitor')
+    monitor_parser.add_argument('--interval', type=int, default=60,
+                               help='Monitoring interval in seconds (default: 60)')
+    monitor_parser.add_argument('--duration', type=int, default=5,
+                               help='Monitoring duration in minutes (default: 5)')
+    monitor_parser.set_defaults(func=cli_monitor_command)
+
+    # Alert command
+    alert_parser = subparsers.add_parser('alert', help='Manage price alerts')
+    alert_group = alert_parser.add_mutually_exclusive_group(required=True)
+    alert_group.add_argument('--create', nargs=3, metavar=('COIN', 'PRICE', 'CONDITION'),
+                            help='Create alert: COIN PRICE CONDITION (above/below)')
+    alert_group.add_argument('--list', action='store_true', help='List active alerts')
+    alert_group.add_argument('--check', action='store_true', help='Check for triggered alerts')
+    alert_parser.set_defaults(func=cli_alert_command)
+
+    return parser
+
+def main():
+    """Main CLI entry point."""
+    parser = create_cli_parser()
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        return
+
+    # Initialize database
+    init_database()
+
+    # Execute command
+    try:
+        args.func(args)
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Operation cancelled by user.[/yellow]")
+    except Exception as e:
+        console.print(f"[red]Unexpected error: {e}[/red]")
 
 if __name__ == "__main__":
-    mcp.run()
+    main()
+
+# REST API functions
+app = Flask(__name__)
+CORS(app)  # Enable CORS for web dashboard
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint."""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'version': '2.0.0'
+    })
+
+@app.route('/api/prices/<coin>', methods=['GET'])
+def get_price_api(coin):
+    """Get price for a specific coin via REST API."""
+    try:
+        price_data = get_crypto_price_with_fallback(coin)
+
+        # Parse price from response
+        import re
+        price_match = re.search(r'\$([0-9,]+\.?[0-9]*)', price_data)
+        if price_match:
+            price = float(price_match.group(1).replace(',', ''))
+            return jsonify({
+                'coin': coin,
+                'price': price,
+                'currency': 'USD',
+                'timestamp': datetime.now().isoformat(),
+                'source': 'multiple_apis'
+            })
+        else:
+            return jsonify({'error': 'Price not found'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/prices', methods=['GET'])
+def get_multiple_prices_api():
+    """Get prices for multiple coins."""
+    coins = request.args.get('coins', 'bitcoin').split(',')
+
+    results = {}
+    for coin in coins:
+        coin = coin.strip()
+        try:
+            price_data = get_crypto_price_with_fallback(coin)
+            import re
+            price_match = re.search(r'\$([0-9,]+\.?[0-9]*)', price_data)
+            if price_match:
+                price = float(price_match.group(1).replace(',', ''))
+                results[coin] = {
+                    'price': price,
+                    'currency': 'USD',
+                    'timestamp': datetime.now().isoformat()
+                }
+            else:
+                results[coin] = {'error': 'Price not found'}
+        except Exception as e:
+            results[coin] = {'error': str(e)}
+
+    return jsonify(results)
+
+@app.route('/api/market', methods=['GET'])
+def get_market_api():
+    """Get market overview."""
+    try:
+        market_data = market_analysis()
+        return jsonify({
+            'market_overview': market_data,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/portfolio', methods=['GET'])
+def get_portfolio_api():
+    """Get portfolio data."""
+    try:
+        init_database()
+        conn = sqlite3.connect('crypto_data.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM portfolio ORDER BY purchase_date DESC')
+        rows = cursor.fetchall()
+        conn.close()
+
+        portfolio = []
+        for row in rows:
+            portfolio.append({
+                'id': row[0],
+                'coin_id': row[1],
+                'amount': row[2],
+                'purchase_price': row[3],
+                'purchase_date': row[4],
+                'notes': row[5]
+            })
+
+        return jsonify({
+            'portfolio': portfolio,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/portfolio', methods=['POST'])
+def add_portfolio_api():
+    """Add entry to portfolio."""
+    try:
+        data = request.get_json()
+
+        if not data or not all(k in data for k in ['coin_id', 'amount', 'purchase_price']):
+            return jsonify({'error': 'Missing required fields: coin_id, amount, purchase_price'}), 400
+
+        result = save_portfolio_to_db(
+            data['coin_id'],
+            float(data['amount']),
+            float(data['purchase_price']),
+            data.get('notes', '')
+        )
+
+        return jsonify({
+            'message': result,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/technical/<coin>', methods=['GET'])
+def get_technical_api(coin):
+    """Get technical analysis for a coin."""
+    try:
+        days = int(request.args.get('days', 30))
+
+        # Get historical data
+        df = get_historical_prices(coin, days)
+
+        if df.empty:
+            return jsonify({'error': 'No historical data available'}), 404
+
+        # Calculate indicators
+        prices = df['price']
+        rsi = calculate_rsi(prices)
+        macd_data = calculate_macd(prices)
+        bollinger = calculate_bollinger_bands(prices)
+
+        # Prepare response
+        technical_data = {
+            'coin': coin,
+            'period_days': days,
+            'indicators': {
+                'rsi': {
+                    'current': rsi.iloc[-1] if not rsi.empty else None,
+                    'signal': 'oversold' if rsi.iloc[-1] < 30 else 'overbought' if rsi.iloc[-1] > 70 else 'neutral'
+                },
+                'macd': {
+                    'macd_line': macd_data['macd'].iloc[-1] if not macd_data['macd'].empty else None,
+                    'signal_line': macd_data['signal'].iloc[-1] if not macd_data['signal'].empty else None,
+                    'histogram': macd_data['histogram'].iloc[-1] if not macd_data['histogram'].empty else None,
+                    'signal': 'bullish' if macd_data['macd'].iloc[-1] > macd_data['signal'].iloc[-1] else 'bearish'
+                },
+                'bollinger_bands': {
+                    'upper': bollinger['upper'].iloc[-1] if not bollinger['upper'].empty else None,
+                    'middle': bollinger['middle'].iloc[-1] if not bollinger['middle'].empty else None,
+                    'lower': bollinger['lower'].iloc[-1] if not bollinger['lower'].empty else None,
+                    'current_price': prices.iloc[-1],
+                    'position': 'above_upper' if prices.iloc[-1] > bollinger['upper'].iloc[-1] else 'below_lower' if prices.iloc[-1] < bollinger['lower'].iloc[-1] else 'within_bands'
+                }
+            },
+            'timestamp': datetime.now().isoformat()
+        }
+
+        return jsonify(technical_data)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/chart/<coin>', methods=['GET'])
+def get_chart_api(coin):
+    """Generate and return price chart as image."""
+    try:
+        days = int(request.args.get('days', 30))
+        chart_type = request.args.get('type', 'price')  # price or technical
+
+        if chart_type == 'technical':
+            result = create_technical_analysis_chart(coin, days)
+        else:
+            result = create_price_chart(coin, days)
+
+        # Extract base64 data from result
+        import re
+        base64_match = re.search(r'data:image/png;base64,([A-Za-z0-9+/=]+)', result)
+        if base64_match:
+            image_data = base64_match.group(1)
+            # Return as file
+            image_bytes = base64.b64decode(image_data)
+            return send_file(
+                io.BytesIO(image_bytes),
+                mimetype='image/png',
+                as_attachment=True,
+                download_name=f'{coin}_{chart_type}_chart.png'
+            )
+        else:
+            return jsonify({'error': 'Chart generation failed'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def start_api_server(host='0.0.0.0', port=5000):
+    """Start the REST API server in a separate thread."""
+    def run_server():
+        console.print(f"[green]Starting REST API server on http://{host}:{port}[/green]")
+        app.run(host=host, port=port, debug=False)
+
+    api_thread = threading.Thread(target=run_server, daemon=True)
+    api_thread.start()
+    return api_thread
+
+# MCP tool for starting API server
+@mcp.tool()
+def start_rest_api(host: str = "0.0.0.0", port: int = 5000):
+    """Start the REST API server for web dashboard integration."""
+    try:
+        global api_thread
+        api_thread = start_api_server(host, port)
+        return f"REST API server started on http://{host}:{port}"
+    except Exception as e:
+        logger.error(f"Error starting API server: {e}")
+        return f"Error starting API server: {str(e)}"
+
+# Alert/Notification system
+alerts = []
+
+def add_price_alert(coin_id: str, target_price: float, condition: str = "above", alert_type: str = "price"):
+    """Add a price alert."""
+    alert = {
+        'id': len(alerts) + 1,
+        'coin_id': coin_id,
+        'target_price': target_price,
+        'condition': condition,  # 'above', 'below', 'change_percent'
+        'alert_type': alert_type,
+        'created_at': datetime.now(),
+        'active': True
+    }
+    alerts.append(alert)
+    return alert
+
+def check_alerts():
+    """Check all active alerts and return triggered ones."""
+    triggered_alerts = []
+
+    for alert in alerts:
+        if not alert['active']:
+            continue
+
+        try:
+            # Get current price
+            price_data = get_crypto_price_with_fallback(alert['coin_id'])
+            import re
+            price_match = re.search(r'\$([0-9,]+\.?[0-9]*)', price_data)
+            if price_match:
+                current_price = float(price_match.group(1).replace(',', ''))
+
+                triggered = False
+                if alert['condition'] == 'above' and current_price >= alert['target_price']:
+                    triggered = True
+                elif alert['condition'] == 'below' and current_price <= alert['target_price']:
+                    triggered = True
+
+                if triggered:
+                    alert['triggered_at'] = datetime.now()
+                    alert['trigger_price'] = current_price
+                    alert['active'] = False
+                    triggered_alerts.append(alert)
+
+        except Exception as e:
+            logger.error(f"Error checking alert for {alert['coin_id']}: {e}")
+
+    return triggered_alerts
+
+@mcp.tool()
+def create_price_alert(coin_id: str, target_price: float, condition: str = "above"):
+    """Create a price alert for a cryptocurrency. Conditions: 'above' or 'below'."""
+    try:
+        alert = add_price_alert(coin_id, target_price, condition)
+        return f"Price alert created: {coin_id.upper()} {condition} ${target_price}"
+    except Exception as e:
+        logger.error(f"Error creating price alert: {e}")
+        return f"Error creating price alert: {str(e)}"
+
+@mcp.tool()
+def check_active_alerts():
+    """Check and return any triggered price alerts."""
+    try:
+        triggered = check_alerts()
+
+        if not triggered:
+            return "No alerts triggered. All active alerts are still monitoring."
+
+        result = "🚨 TRIGGERED ALERTS:\n"
+        for alert in triggered:
+            result += f"• {alert['coin_id'].upper()} {alert['condition']} ${alert['target_price']} - "
+            result += f"Current: ${alert['trigger_price']:.2f} (Triggered at {alert['triggered_at'].strftime('%H:%M:%S')})\n"
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error checking alerts: {e}")
+        return f"Error checking alerts: {str(e)}"
+
+@mcp.tool()
+def list_active_alerts():
+    """List all active price alerts."""
+    try:
+        active_alerts = [alert for alert in alerts if alert['active']]
+
+        if not active_alerts:
+            return "No active alerts."
+
+        result = "📊 ACTIVE ALERTS:\n"
+        for alert in active_alerts:
+            result += f"• Alert #{alert['id']}: {alert['coin_id'].upper()} {alert['condition']} ${alert['target_price']}\n"
+            result += f"  Created: {alert['created_at'].strftime('%Y-%m-%d %H:%M:%S')}\n"
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error listing alerts: {e}")
+        return f"Error listing alerts: {str(e)}"
+
+# Background alert checker
+def start_alert_monitor(interval_seconds: int = 60):
+    """Start background alert monitoring."""
+    def monitor_alerts():
+        console.print(f"[yellow]Starting alert monitor (check every {interval_seconds}s)...[/yellow]")
+        while True:
+            try:
+                triggered = check_alerts()
+                if triggered:
+                    for alert in triggered:
+                        console.print(f"[red]🚨 ALERT TRIGGERED: {alert['coin_id'].upper()} {alert['condition']} ${alert['target_price']} - Current: ${alert['trigger_price']:.2f}[/red]")
+                time.sleep(interval_seconds)
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                logger.error(f"Error in alert monitor: {e}")
+                time.sleep(interval_seconds)
+
+    monitor_thread = threading.Thread(target=monitor_alerts, daemon=True)
+    monitor_thread.start()
+    return monitor_thread
+
+
+if __name__ == "__main__":
+    main()
