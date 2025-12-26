@@ -36,7 +36,7 @@ This project follows a code of conduct to ensure a welcoming environment for all
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/YOUR_USERNAME/Crypto_MCP.git
+git clone https://github.com/mibis/Crypto_MCP.git
 cd Crypto_MCP
 
 # Set up development environment
@@ -90,13 +90,13 @@ python crypto_mcp.py  # Should start without errors
 
 ### Finding Issues
 
-- Check [GitHub Issues](https://github.com/YOUR_USERNAME/Crypto_MCP/issues) for open tasks
+- Check [GitHub Issues](https://github.com/mibis/Crypto_MCP/issues) for open tasks
 - Look for issues labeled `good first issue` or `help wanted`
 - Comment on issues you'd like to work on
 
 ### Feature Requests
 
-- Open a [GitHub Issue](https://github.com/YOUR_USERNAME/Crypto_MCP/issues) with the `enhancement` label
+- Open a [GitHub Issue](https://github.com/mibis/Crypto_MCP/issues) with the `enhancement` label
 - Describe the feature and its use case
 - Discuss implementation approach if possible
 
@@ -235,8 +235,8 @@ Closes #123
 ### Getting Help
 
 - 📖 **Documentation:** Check [README.md](README.md) and [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)
-- 💬 **Discussions:** Use [GitHub Discussions](https://github.com/YOUR_USERNAME/Crypto_MCP/discussions) for questions
-- 🐛 **Issues:** Report bugs via [GitHub Issues](https://github.com/YOUR_USERNAME/Crypto_MCP/issues)
+- 💬 **Discussions:** Use [GitHub Discussions](https://github.com/mibis/Crypto_MCP/discussions) for questions
+- 🐛 **Issues:** Report bugs via [GitHub Issues](https://github.com/mibis/Crypto_MCP/issues)
 
 ### Recognition
 

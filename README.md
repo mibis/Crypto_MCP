@@ -2,8 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
-[![GitHub Issues](https://img.shields.io/github/issues/YOUR_USERNAME/Crypto_MCP)](https://github.com/YOUR_USERNAME/Crypto_MCP/issues)
-[![GitHub Stars](https://img.shields.io/github/stars/YOUR_USERNAME/Crypto_MCP)](https://github.com/YOUR_USERNAME/Crypto_MCP/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/mibis/Crypto_MCP)](https://github.com/mibis/Crypto_MCP/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/mibis/Crypto_MCP)](https://github.com/mibis/Crypto_MCP/stargazers)
 
 Crypto_MCP, yerel bir LLM'in (Large Language Model) dış dünyaya kapalı yapısını kırarak, kripto piyasası gibi son derece dinamik bir alanda güncel ve analiz edilmiş veriye ulaşmasını sağlayacak modern bir köprü olacaktır.
 
@@ -75,7 +75,7 @@ git add .
 git commit -m "Initial commit: Crypto_MCP MCP server for crypto data"
 
 # GitHub repository'sini remote olarak ekleyin
-git remote add origin https://github.com/YOUR_USERNAME/Crypto_MCP.git
+git remote add origin https://github.com/mibis/Crypto_MCP.git
 
 # Push edin
 git push -u origin main
@@ -189,12 +189,7 @@ Crypto_MCP/
 4. Push edin (`git push origin feature/amazing-feature`)
 5. Pull Request açın
 
-### Geliştirme Standartları
-
-- PEP 8 kod stili
-- İngilizce docstring'ler
-- Test coverage
-- MCP protokol uyumluluğu
+Detaylı katkıda bulunma rehberi için [CONTRIBUTING.md](CONTRIBUTING.md) dosyasına bakın.
 
 ## 📄 Lisans
 
