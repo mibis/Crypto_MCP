@@ -64,7 +64,83 @@ Bu dosya, Crypto_MCP araçlarını kullanmak için örnek kullanıcı sorguları
 "Show 24h price changes"
 ```
 
-## 🔧 Araç Yönetimi Örnekleri
+## � Teknik Analiz Örnekleri
+
+### Kapsamlı Teknik Analiz
+```
+"Bitcoin'in teknik analizini yap"
+"Perform technical analysis on Ethereum"
+"ETH için RSI, MACD ve Bollinger Bands hesapla"
+"Complete technical analysis for BTC"
+```
+
+### RSI Analizi
+```
+"Bitcoin'in RSI değeri nedir?"
+"RSI indicator for Ethereum"
+"ETH'nin RSI sinyali ne?"
+"Check RSI for BTC with buy/sell signals"
+```
+
+### MACD Analizi
+```
+"MACD analizi Bitcoin için"
+"MACD crossover signals for ETH"
+"BTC'nin MACD göstergesi"
+"Show MACD analysis for Ethereum"
+```
+
+### Bollinger Bands
+```
+"Bollinger Bands Bitcoin için"
+"BB analysis for ETH"
+"BTC'nin volatilitesini Bollinger Bands ile incele"
+"Bollinger Bands volatility analysis"
+```
+
+### Trend Analizi
+```
+"Bitcoin trend analizi"
+"Trend analysis for Ethereum"
+"BTC'nin hareketli ortalamaları"
+"Moving averages and support/resistance for ETH"
+```
+
+## 📊 Portföy Analizi Örnekleri
+
+### Portföy Takibi
+```
+"Portföyüm: bitcoin:0.5,ethereum:2.1"
+"Track my portfolio: BTC:0.5,ETH:2.1"
+"Portföy performansı: bitcoin:amount=0.5,cost_basis=30000;ethereum:amount=2.1,cost_basis=4000"
+"Portfolio analysis with cost basis"
+```
+
+### Risk Analizi
+```
+"Bitcoin, Ethereum ve Cardano'nun risk metrikleri"
+"Risk analysis for BTC,ETH,ADA"
+"Volatility and Sharpe ratio comparison"
+"Compare risk metrics across cryptocurrencies"
+```
+
+### Korelasyon Analizi
+```
+"Bitcoin ve Ethereum arasındaki korelasyon"
+"Correlation between BTC and ETH"
+"Portföyümün korelasyon matrisi: bitcoin,ethereum,cardano"
+"Correlation analysis for my holdings"
+```
+
+### Rebalancing Önerileri
+```
+"Portföyümü yeniden dengele: bitcoin:0.5,ethereum:2.1"
+"Rebalancing suggestions for BTC:50%,ETH:30%,others:20%"
+"Portfolio rebalancing advice"
+"Optimize my crypto portfolio allocation"
+```
+
+## �🔧 Araç Yönetimi Örnekleri
 
 ### Araç Listesi
 ```

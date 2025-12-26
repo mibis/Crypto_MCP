@@ -7,6 +7,37 @@
 
 Crypto_MCP, yerel bir LLM'in (Large Language Model) dış dünyaya kapalı yapısını kırarak, kripto piyasası gibi son derece dinamik bir alanda güncel ve analiz edilmiş veriye ulaşmasını sağlayacak modern bir köprü olacaktır.
 
+## ✨ Özellikler
+
+### 💰 Fiyat Verileri
+- **6 farklı API**: CoinGecko, Binance, Kraken, CoinPaprika, CoinStats, CryptoCompare
+- **Çoklu kaynak**: Fiyat karşılaştırması ve güvenilirlik
+- **Graceful degradation**: Bir API down olursa otomatik alternatif
+
+### 📊 Teknik Analiz
+- **RSI**: Aşırı alım/satım sinyalleri
+- **MACD**: Trend ve momentum analizi
+- **Bollinger Bands**: Volatilite ve destek/direnç seviyeleri
+- **Moving Averages**: Trend belirleme (20, 50, 100 günlük)
+- **Support/Resistance**: Otomatik seviye tespiti
+
+### 📈 Portföy Yönetimi
+- **Performans takibi**: P&L analizi ve getiri hesaplaması
+- **Risk metrikleri**: Volatility, Sharpe ratio, maximum drawdown
+- **Korelasyon analizi**: Varlık ilişkilerini inceleme
+- **Rebalancing önerileri**: Portföy optimizasyonu
+
+### 📰 Haber & Piyasa
+- **Güncel haberler**: CryptoCompare API entegrasyonu
+- **Piyasa özeti**: Top 10 coin analizi
+- **Sentiment analizi**: Piyasa duyarlılığı
+
+### ⚡ Performans & Güvenilirlik
+- **Akıllı cache**: 5 dakikalık API response cache'i
+- **Error handling**: Kapsamlı hata yönetimi
+- **Rate limit koruması**: API sınırlarını aşmama
+- **Logging**: Detaylı işlem kayıtları
+
 Detaylı proje açıklaması için [PROJECT.md](PROJECT.md) dosyasına bakın.
 
 Kapsamlı kullanım örnekleri için [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md) dosyasına bakın.
