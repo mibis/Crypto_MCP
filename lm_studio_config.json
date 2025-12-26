@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "crypto-mcp": {
+      "command": "C:\\VS_WorkSpace\\Crypto_MCP\\start_crypto_mcp.bat",
+      "args": [],
+      "env": {}
+    }
+  }
+}
