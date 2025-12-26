@@ -176,7 +176,17 @@ Crypto_MCP projesi temel kripto veri erişimi ile başarılı bir başlangıç y
 
 ---
 
-## 🎯 **Başlangıç Noktası**
+## � **Uluslararasılaştırma ve Yerelleştirme**
+
+### **Dil Desteği**
+- [ ] **İngilizce Çevirileri**: Tüm açıklamalar, hata mesajları ve dokümantasyon İngilizce olarak çevrilecek
+- [ ] **Çok Dilli Arayüz**: Türkçe ve İngilizce dil desteği
+- [ ] **Localization Framework**: i18n kütüphanesi entegrasyonu
+- [ ] **API Response Translation**: API yanıtlarının otomatik çevirisi
+
+---
+
+## �🎯 **Başlangıç Noktası**
 
 **Önerilen İlk Adım:** Aşama 1.1.1 - Hata Yönetimi ve Logging
 
