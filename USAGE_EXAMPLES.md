@@ -247,14 +247,58 @@ Bu dosya, Crypto_MCP araçlarını kullanmak için örnek kullanıcı sorguları
 "Start real-time price monitoring for ETH"
 ```
 
+## 🎨 Stage 4: Kullanıcı Deneyimi
+
+### Rich CLI Komutları
+```
+# Fiyat kontrolü
+python crypto_mcp.py price bitcoin ethereum
+
+# Portföy yönetimi
+python crypto_mcp.py portfolio --add bitcoin 1.5 45000
+python crypto_mcp.py portfolio
+
+# Piyasa özeti
+python crypto_mcp.py market
+
+# Fiyat izleme
+python crypto_mcp.py monitor bitcoin --interval 30 --duration 2
+
+# Alert sistemi
+python crypto_mcp.py alert --create bitcoin 50000 above
+python crypto_mcp.py alert --list
+python crypto_mcp.py alert --check
+```
+
+### REST API Endpoints
+```
+GET  /api/health              - Sistem durumu
+GET  /api/prices/<coin>       - Tek coin fiyatı
+GET  /api/prices?coins=a,b,c  - Çoklu coin fiyatları
+GET  /api/market              - Piyasa özeti
+GET  /api/portfolio           - Portföy verileri
+POST /api/portfolio           - Portföy ekleme
+GET  /api/technical/<coin>    - Teknik analiz
+GET  /api/chart/<coin>        - Grafik oluşturma
+```
+
+### Web Dashboard Kullanımı
+```
+1. REST API'yi başlatın: python crypto_mcp.py ile MCP server çalıştırın
+2. dashboard.html dosyasını tarayıcıda açın
+3. Coin seçin ve fiyatları kontrol edin
+4. Portföyünüzü yönetin
+5. Teknik analiz yapın
+6. Grafikler oluşturun
+```
+
 ## 🚀 Başlangıç İçin Önerilen Sorgular
 
 Yeni başlayanlar için:
-1. "Hangi araçlar mevcut?" (Araçları keşfetmek için)
-2. "Bitcoin fiyatı nedir?" (Basit fiyat sorgusu)
-3. "Top 10 coin göster" (Piyasa özeti)
-4. "Kripto haberleri" (Haber akışı)
-5. "Bitcoin grafiğini çiz" (Yeni görselleştirme özelliği)
-6. "Portföyüme BTC ekle" (Veritabanı özelliği)
+1. **CLI ile başlayın**: `python crypto_mcp.py price bitcoin`
+2. **Web dashboard'u keşfedin**: `dashboard.html` dosyasını açın
+3. **Alert sistemi**: `python crypto_mcp.py alert --create bitcoin 50000 above`
+4. **Portföy takibi**: `python crypto_mcp.py portfolio --add bitcoin 1 45000`
+5. **Teknik analiz**: `python crypto_mcp.py monitor bitcoin --interval 60 --duration 5`
 
-Bu örnekler, Crypto_MCP'nin tüm özelliklerini keşfetmenize yardımcı olacaktır!
+Bu örnekler, Crypto_MCP'nin tüm Stage 4 özelliklerini keşfetmenize yardımcı olacaktır!

@@ -41,6 +41,13 @@ Crypto_MCP, yerel bir LLM'in (Large Language Model) dış dünyaya kapalı yapı
 - **Error handling**: Kapsamlı hata yönetimi
 - **Rate limit koruması**: API sınırlarını aşmama
 - **Logging**: Detaylı işlem kayıtları
+- **Alert sistemi**: Fiyat değişim uyarıları
+
+### 🎨 Kullanıcı Arayüzü
+- **Rich CLI**: Renkli, tablo formatında terminal arayüzü
+- **REST API**: JSON tabanlı web servisleri
+- **Web Dashboard**: Modern HTML/CSS/JavaScript arayüzü
+- **Real-time Alerts**: Otomatik fiyat uyarıları
 
 Detaylı proje açıklaması için [PROJECT.md](PROJECT.md) dosyasına bakın.
 
