@@ -6,6 +6,11 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import pandas as pd
 import numpy as np
+import sqlite3
+import json
+import matplotlib.pyplot as plt
+import io
+import base64
 
 # Logging yapılandırması
 logging.basicConfig(
@@ -336,6 +341,103 @@ def clear_cache():
     except Exception as e:
         logger.error(f"Error clearing cache: {e}")
         return f"Error clearing cache: {str(e)}"
+
+@mcp.tool()
+def get_price_bybit(symbol: str = "BTCUSDT"):
+    """Gets cryptocurrency price from Bybit exchange. Use symbols like BTCUSDT, ETHUSDT."""
+    try:
+        url = f"https://api.bybit.com/v5/market/tickers?category=spot&symbol={symbol}"
+        data = safe_api_call(url, "Bybit")
+
+        if not data.get('result') or not data['result'].get('list'):
+            raise APIDataError("No ticker data found", "Bybit")
+
+        ticker = data['result']['list'][0]
+        price = ticker.get('lastPrice')
+
+        if price is None:
+            raise APIDataError("Price not found in ticker data", "Bybit")
+
+        return f"{symbol} price (Bybit): ${price}"
+
+    except CryptoAPIError as e:
+        logger.error(f"Bybit API error: {e}")
+        return f"Error fetching {symbol} from Bybit: {e}"
+    except Exception as e:
+        logger.error(f"Unexpected error in get_price_bybit: {e}")
+        return f"Unexpected error fetching {symbol} from Bybit: {str(e)}"
+
+@mcp.tool()
+def get_price_kucoin(symbol: str = "BTC-USDT"):
+    """Gets cryptocurrency price from KuCoin exchange. Use symbols like BTC-USDT, ETH-USDT."""
+    try:
+        url = f"https://api.kucoin.com/api/v1/market/orderbook/level1?symbol={symbol}"
+        data = safe_api_call(url, "KuCoin")
+
+        if not data.get('data'):
+            raise APIDataError("No orderbook data found", "KuCoin")
+
+        price = data['data'].get('price')
+
+        if price is None:
+            raise APIDataError("Price not found in orderbook data", "KuCoin")
+
+        return f"{symbol} price (KuCoin): ${price}"
+
+    except CryptoAPIError as e:
+        logger.error(f"KuCoin API error: {e}")
+        return f"Error fetching {symbol} from KuCoin: {e}"
+    except Exception as e:
+        logger.error(f"Unexpected error in get_price_kucoin: {e}")
+        return f"Unexpected error fetching {symbol} from KuCoin: {str(e)}"
+
+@mcp.tool()
+def get_uniswap_token_price(token_address: str = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"):  # UNI token
+    """Gets token price from Uniswap v3. Use token contract addresses."""
+    try:
+        # Using Uniswap v3 subgraph
+        query = """
+        {
+          token(id: "%s") {
+            symbol
+            name
+            derivedETH
+          }
+          bundle(id: "1") {
+            ethPriceUSD
+          }
+        }
+        """ % token_address.lower()
+
+        url = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3"
+        response = requests.post(url, json={'query': query}, timeout=10)
+
+        if response.status_code != 200:
+            raise APIDataError(f"HTTP {response.status_code}", "Uniswap")
+
+        data = response.json()
+
+        if data.get('errors'):
+            raise APIDataError(f"GraphQL errors: {data['errors']}", "Uniswap")
+
+        token_data = data.get('data', {}).get('token')
+        bundle_data = data.get('data', {}).get('bundle')
+
+        if not token_data or not bundle_data:
+            raise APIDataError("Token or bundle data not found", "Uniswap")
+
+        eth_price = float(bundle_data['ethPriceUSD'])
+        token_eth_price = float(token_data['derivedETH'])
+        usd_price = eth_price * token_eth_price
+
+        return f"{token_data['symbol']} ({token_data['name']}) price (Uniswap): ${usd_price:.4f}"
+
+    except CryptoAPIError as e:
+        logger.error(f"Uniswap API error: {e}")
+        return f"Error fetching token {token_address} from Uniswap: {e}"
+    except Exception as e:
+        logger.error(f"Unexpected error in get_uniswap_token_price: {e}")
+        return f"Unexpected error fetching token {token_address} from Uniswap: {str(e)}"
 
 @mcp.tool()
 def get_cache_status():
@@ -1173,6 +1275,326 @@ def correlation_analysis(coin_ids: str, days: int = 30):
     except Exception as e:
         logger.error(f"Error in correlation_analysis: {e}")
         return f"Error performing correlation analysis: {str(e)}"
+
+# Database functions
+def init_database():
+    """Initialize SQLite database for storing crypto data."""
+    conn = sqlite3.connect('crypto_data.db')
+    cursor = conn.cursor()
+
+    # Create price history table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS price_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            coin_id TEXT NOT NULL,
+            price REAL NOT NULL,
+            volume REAL,
+            market_cap REAL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            source TEXT NOT NULL
+        )
+    ''')
+
+    # Create portfolio table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS portfolio (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            coin_id TEXT NOT NULL,
+            amount REAL NOT NULL,
+            purchase_price REAL NOT NULL,
+            purchase_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            notes TEXT
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+def save_price_to_db(coin_id: str, price: float, volume: float = None, market_cap: float = None, source: str = "unknown"):
+    """Save price data to database."""
+    try:
+        init_database()
+        conn = sqlite3.connect('crypto_data.db')
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            INSERT INTO price_history (coin_id, price, volume, market_cap, source)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (coin_id, price, volume, market_cap, source))
+
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        logger.error(f"Error saving price to database: {e}")
+        return False
+
+def get_price_history_from_db(coin_id: str, days: int = 30) -> pd.DataFrame:
+    """Get price history from database."""
+    try:
+        init_database()
+        conn = sqlite3.connect('crypto_data.db')
+        cursor = conn.cursor()
+
+        # Calculate date threshold
+        from datetime import datetime, timedelta
+        threshold_date = datetime.now() - timedelta(days=days)
+
+        cursor.execute('''
+            SELECT price, volume, market_cap, timestamp, source
+            FROM price_history
+            WHERE coin_id = ? AND timestamp >= ?
+            ORDER BY timestamp ASC
+        ''', (coin_id, threshold_date.strftime('%Y-%m-%d %H:%M:%S')))
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        if not rows:
+            return pd.DataFrame()
+
+        df = pd.DataFrame(rows, columns=['price', 'volume', 'market_cap', 'timestamp', 'source'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df.set_index('timestamp', inplace=True)
+
+        return df
+
+    except Exception as e:
+        logger.error(f"Error getting price history from database: {e}")
+        return pd.DataFrame()
+
+@mcp.tool()
+def save_portfolio_to_db(coin_id: str, amount: float, purchase_price: float, notes: str = ""):
+    """Save portfolio entry to database. Use coin IDs like 'bitcoin', 'ethereum'."""
+    try:
+        init_database()
+        conn = sqlite3.connect('crypto_data.db')
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            INSERT INTO portfolio (coin_id, amount, purchase_price, notes)
+            VALUES (?, ?, ?, ?)
+        ''', (coin_id, amount, purchase_price, notes))
+
+        conn.commit()
+        conn.close()
+
+        return f"Portfolio entry saved: {amount} {coin_id} at ${purchase_price}"
+
+    except Exception as e:
+        logger.error(f"Error saving portfolio to database: {e}")
+        return f"Error saving portfolio entry: {str(e)}"
+
+@mcp.tool()
+def get_portfolio_from_db():
+    """Get all portfolio entries from database."""
+    try:
+        init_database()
+        conn = sqlite3.connect('crypto_data.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM portfolio ORDER BY purchase_date DESC')
+        rows = cursor.fetchall()
+        conn.close()
+
+        if not rows:
+            return "No portfolio entries found."
+
+        result = "Portfolio Entries:\n"
+        for row in rows:
+            result += f"- {row[2]} {row[1]} purchased at ${row[3]} on {row[4]}"
+            if row[5]:
+                result += f" (Notes: {row[5]})"
+            result += "\n"
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error getting portfolio from database: {e}")
+        return f"Error retrieving portfolio: {str(e)}"
+
+@mcp.tool()
+def get_stored_price_history(coin_id: str, days: int = 30):
+    """Get stored price history from database for analysis."""
+    try:
+        df = get_price_history_from_db(coin_id, days)
+
+        if df.empty:
+            return f"No stored price history found for {coin_id} in the last {days} days."
+
+        result = f"Price History for {coin_id} (last {days} days):\n"
+        result += f"Records: {len(df)}\n"
+        result += f"Average Price: ${df['price'].mean():.2f}\n"
+        result += f"Min Price: ${df['price'].min():.2f}\n"
+        result += f"Max Price: ${df['price'].max():.2f}\n"
+        result += f"Latest Price: ${df['price'].iloc[-1]:.2f}\n"
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error getting stored price history: {e}")
+        return f"Error retrieving price history: {str(e)}"
+
+@mcp.tool()
+def create_price_chart(coin_id: str, days: int = 30):
+    """Create a price chart for the specified cryptocurrency."""
+    try:
+        # Get historical data
+        df = get_historical_prices(coin_id, days)
+
+        if df.empty:
+            return f"No historical data available for {coin_id}"
+
+        # Create the plot
+        plt.figure(figsize=(12, 6))
+        plt.plot(df.index, df['price'], label=f'{coin_id.upper()} Price', color='blue', linewidth=2)
+
+        # Add moving averages
+        if len(df) > 20:
+            ma20 = df['price'].rolling(window=20).mean()
+            plt.plot(df.index, ma20, label='20-day MA', color='orange', linestyle='--')
+
+        if len(df) > 50:
+            ma50 = df['price'].rolling(window=50).mean()
+            plt.plot(df.index, ma50, label='50-day MA', color='red', linestyle='--')
+
+        plt.title(f'{coin_id.upper()} Price Chart (Last {days} Days)')
+        plt.xlabel('Date')
+        plt.ylabel('Price (USD)')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.xticks(rotation=45)
+
+        # Save plot to base64 string
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        buffer.seek(0)
+        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        plt.close()
+
+        return f"Price chart created for {coin_id}. Chart data: data:image/png;base64,{image_base64}"
+
+    except Exception as e:
+        logger.error(f"Error creating price chart: {e}")
+        return f"Error creating price chart: {str(e)}"
+
+@mcp.tool()
+def create_technical_analysis_chart(coin_id: str, days: int = 30):
+    """Create a technical analysis chart with RSI and MACD indicators."""
+    try:
+        # Get historical data
+        df = get_historical_prices(coin_id, days)
+
+        if df.empty or len(df) < 26:
+            return f"Insufficient historical data for {coin_id} technical analysis"
+
+        prices = df['price']
+
+        # Calculate indicators
+        rsi = calculate_rsi(prices)
+        macd_data = calculate_macd(prices)
+        macd_line = macd_data['macd']
+        signal_line = macd_data['signal']
+        histogram = macd_data['histogram']
+
+        # Create subplots
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(14, 10), gridspec_kw={'height_ratios': [3, 1, 1]})
+
+        # Price chart
+        ax1.plot(df.index, prices, label='Price', color='blue', linewidth=1.5)
+        ax1.set_title(f'{coin_id.upper()} Technical Analysis (Last {days} Days)')
+        ax1.set_ylabel('Price (USD)')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+
+        # RSI chart
+        ax2.plot(df.index, rsi, label='RSI', color='purple', linewidth=1.5)
+        ax2.axhline(y=70, color='red', linestyle='--', alpha=0.7, label='Overbought (70)')
+        ax2.axhline(y=30, color='green', linestyle='--', alpha=0.7, label='Oversold (30)')
+        ax2.set_ylabel('RSI')
+        ax2.set_ylim(0, 100)
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+
+        # MACD chart
+        ax3.plot(df.index, macd_line, label='MACD', color='blue', linewidth=1.5)
+        ax3.plot(df.index, signal_line, label='Signal', color='red', linewidth=1.5)
+        ax3.bar(df.index, histogram, label='Histogram', color='gray', alpha=0.7)
+        ax3.set_ylabel('MACD')
+        ax3.legend()
+        ax3.grid(True, alpha=0.3)
+
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # Save plot to base64 string
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        buffer.seek(0)
+        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        plt.close()
+
+        return f"Technical analysis chart created for {coin_id}. Chart data: data:image/png;base64,{image_base64}"
+
+    except Exception as e:
+        logger.error(f"Error creating technical analysis chart: {e}")
+        return f"Error creating technical analysis chart: {str(e)}"
+
+@mcp.tool()
+def start_price_monitoring(coin_id: str, interval_seconds: int = 60, duration_minutes: int = 5):
+    """Monitor cryptocurrency price in real-time for a specified duration."""
+    try:
+        import time
+
+        end_time = time.time() + (duration_minutes * 60)
+        prices = []
+
+        print(f"Starting price monitoring for {coin_id}...")
+
+        while time.time() < end_time:
+            try:
+                # Get current price
+                price_data = get_crypto_price_with_fallback(coin_id)
+
+                # Extract numeric price from response
+                import re
+                price_match = re.search(r'\$([0-9,]+\.?[0-9]*)', price_data)
+                if price_match:
+                    price = float(price_match.group(1).replace(',', ''))
+                    timestamp = datetime.now().strftime('%H:%M:%S')
+                    prices.append((timestamp, price))
+                    print(f"[{timestamp}] {coin_id}: ${price}")
+
+                    # Save to database
+                    save_price_to_db(coin_id, price, source="realtime_monitor")
+
+                time.sleep(interval_seconds)
+
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                print(f"Error during monitoring: {e}")
+                time.sleep(interval_seconds)
+
+        # Summary
+        if prices:
+            prices_only = [p[1] for p in prices]
+            result = f"Monitoring completed for {coin_id}:\n"
+            result += f"Duration: {duration_minutes} minutes\n"
+            result += f"Readings: {len(prices)}\n"
+            result += f"Start Price: ${prices[0][1]:.2f}\n"
+            result += f"End Price: ${prices[-1][1]:.2f}\n"
+            result += f"Min Price: ${min(prices_only):.2f}\n"
+            result += f"Max Price: ${max(prices_only):.2f}\n"
+            result += f"Price Change: ${prices[-1][1] - prices[0][1]:.2f} ({((prices[-1][1] - prices[0][1]) / prices[0][1] * 100):.2f}%)"
+
+            return result
+        else:
+            return f"No price data collected for {coin_id}"
+
+    except Exception as e:
+        logger.error(f"Error in price monitoring: {e}")
+        return f"Error monitoring price: {str(e)}"
 
 
 if __name__ == "__main__":

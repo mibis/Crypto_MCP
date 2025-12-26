@@ -37,17 +37,17 @@ Crypto_MCP projesi temel kripto veri erişimi ile başarılı bir başlangıç y
 
 ---
 
-## 💰 **Aşama 2: Finansal Analiz Araçları (v1.2.0)**
+## 💰 **Aşama 2: Finansal Analiz Araçları (v1.2.0)** ✅ **TAMAMLANDI**
 
 ### **Hedef:** Temel finansal analiz yetenekleri eklemek
 
-#### **2.1.1 - Teknik Analiz**
+#### **2.1.1 - Teknik Analiz** ✅
 - [x] RSI, MACD, Bollinger Bands hesaplaması
 - [x] Trend analizi
 - [x] Support/Resistance seviyeleri
 - [x] Volume analizi
 
-#### **2.1.2 - Portföy Analizi**
+#### **2.1.2 - Portföy Analizi** ✅
 - [x] Portföy performans takibi
 - [x] Risk metrikleri (Sharpe ratio, volatility)
 - [x] Correlation analizi
@@ -61,7 +61,7 @@ Crypto_MCP projesi temel kripto veri erişimi ile başarılı bir başlangıç y
 
 ---
 
-## 🌐 **Aşama 3: Genişletme ve Entegrasyon (v1.3.0)**
+## 🌐 **Aşama 3: Genişletme ve Entegrasyon (v1.3.0)** 🚧 **ŞU AN ÇALIŞILIYOR**
 
 ### **Hedef:** Daha fazla veri kaynağı ve entegrasyon
 
@@ -159,15 +159,17 @@ Crypto_MCP projesi temel kripto veri erişimi ile başarılı bir başlangıç y
 
 ## 📊 **İlerleme Takibi**
 
-### **Mevcut Sprint (Şu an - 2 hafta)**
-- [ ] Hata yönetimi sistemi
-- [ ] Temel caching
-- [ ] Unit test framework kurulumu
+### **Mevcut Sprint (Şu an - 3 hafta)**
+- [ ] Yeni exchange API'leri (Bybit, KuCoin)
+- [ ] DeFi protokolleri entegrasyonu (Uniswap)
+- [ ] WebSocket canlı veri akışı
+- [ ] SQLite veritabanı entegrasyonu
+- [ ] Grafik görselleştirme (matplotlib)
 
 ### **Öncelik Sıralaması**
-1. **Yüksek:** Güvenilirlik ve performans
-2. **Orta:** Finansal analiz araçları
-3. **Düşük:** UI/UX geliştirmeleri
+1. **Yüksek:** Yeni veri kaynakları ve API entegrasyonları
+2. **Orta:** Real-time veri akışı ve veritabanı
+3. **Düşük:** Görselleştirme ve gelişmiş özellikler
 
 ### **Risk Değerlendirmesi**
 - **Teknik Risk:** API rate limits, downtime
