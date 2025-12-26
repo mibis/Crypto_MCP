@@ -203,6 +203,50 @@ Bu dosya, Crypto_MCP araçlarını kullanmak için örnek kullanıcı sorguları
 - English: "What's Bitcoin price?"
 - Her iki dil de desteklenir
 
+## 🌐 Stage 3: Yeni API'ler ve Entegrasyonlar
+
+### Bybit & KuCoin Fiyat Sorguları
+```
+"Bitcoin'i Bybit'ten kontrol et"
+"Get Ethereum price from KuCoin"
+"BTCUSDT Bybit fiyatı"
+"ETH-USDT KuCoin'da kaç?"
+```
+
+### DeFi Token Fiyatları (Uniswap)
+```
+"Uniswap token fiyatı nedir?"
+"Get UNI token price from Uniswap"
+"Token contract 0x1f9840a85d5af5bf1d1762f925bdaddc4201f984 için fiyat"
+"Show me AAVE token price on Uniswap"
+```
+
+### Veritabanı İşlemleri
+```
+"Portföyüme 10 BTC ekle, fiyatı 45000"
+"Save 5 ETH to portfolio at $3000"
+"Portföyümdeki tüm varlıkları göster"
+"Show my portfolio entries"
+"Bitcoin'in son 30 günlük fiyat geçmişini göster"
+"Get stored price history for Ethereum"
+```
+
+### Grafik ve Görselleştirme
+```
+"Bitcoin için fiyat grafiği oluştur"
+"Create price chart for Ethereum"
+"Bitcoin'in teknik analiz grafiğini çiz (RSI + MACD)"
+"Generate technical analysis chart for BTC"
+```
+
+### Real-time İzleme
+```
+"Bitcoin'i 1 dakika aralıklarla 5 dakika izle"
+"Monitor Ethereum price for 10 minutes"
+"Canlı fiyat takibi başlat BTC için"
+"Start real-time price monitoring for ETH"
+```
+
 ## 🚀 Başlangıç İçin Önerilen Sorgular
 
 Yeni başlayanlar için:
@@ -210,5 +254,7 @@ Yeni başlayanlar için:
 2. "Bitcoin fiyatı nedir?" (Basit fiyat sorgusu)
 3. "Top 10 coin göster" (Piyasa özeti)
 4. "Kripto haberleri" (Haber akışı)
+5. "Bitcoin grafiğini çiz" (Yeni görselleştirme özelliği)
+6. "Portföyüme BTC ekle" (Veritabanı özelliği)
 
 Bu örnekler, Crypto_MCP'nin tüm özelliklerini keşfetmenize yardımcı olacaktır!

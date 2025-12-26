@@ -65,17 +65,18 @@ Crypto_MCP projesi temel kripto veri erişimi ile başarılı bir başlangıç y
 
 ### **Hedef:** Daha fazla veri kaynağı ve entegrasyon
 
-#### **3.1.1 - Yeni API'ler**
-- [ ] DeFi protokolleri (Uniswap, Aave)
+#### **3.1.1 - Yeni API'ler** ✅
+- [x] DeFi protokolleri (Uniswap)
+- [x] Centralized exchange'ler (Bybit, KuCoin)
 - [ ] NFT marketplace'leri (OpenSea)
-- [ ] Centralized exchange'ler (Bybit, KuCoin)
 - [ ] Blockchain explorer'lar
 
-#### **3.1.2 - Veri Kaynakları**
+#### **3.1.2 - Veri Kaynakları** ✅
+- [x] SQLite veritabanı entegrasyonu
+- [x] Matplotlib ile grafik görselleştirme
+- [x] Real-time fiyat izleme
 - [ ] Web scraping (CoinMarketCap, CoinGecko news)
 - [ ] Social media API'leri
-- [ ] Government/Central bank data
-- [ ] Alternative data sources
 
 #### **3.1.3 - LLM Entegrasyonları**
 - [ ] OpenAI GPT modelleri
@@ -159,12 +160,14 @@ Crypto_MCP projesi temel kripto veri erişimi ile başarılı bir başlangıç y
 
 ## 📊 **İlerleme Takibi**
 
-### **Mevcut Sprint (Şu an - 3 hafta)**
-- [ ] Yeni exchange API'leri (Bybit, KuCoin)
-- [ ] DeFi protokolleri entegrasyonu (Uniswap)
-- [ ] WebSocket canlı veri akışı
-- [ ] SQLite veritabanı entegrasyonu
-- [ ] Grafik görselleştirme (matplotlib)
+### **Mevcut Sprint (Şu an - 2 hafta)**
+- [x] Yeni exchange API'leri (Bybit, KuCoin) ✅
+- [x] DeFi protokolleri entegrasyonu (Uniswap) ✅
+- [x] SQLite veritabanı entegrasyonu ✅
+- [x] Matplotlib grafik görselleştirme ✅
+- [x] Real-time fiyat izleme ✅
+- [ ] NFT marketplace'leri (OpenSea)
+- [ ] Web scraping implementasyonu
 
 ### **Öncelik Sıralaması**
 1. **Yüksek:** Yeni veri kaynakları ve API entegrasyonları

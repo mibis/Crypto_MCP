@@ -10,8 +10,9 @@ Crypto_MCP, yerel bir LLM'in (Large Language Model) dış dünyaya kapalı yapı
 ## ✨ Özellikler
 
 ### 💰 Fiyat Verileri
-- **6 farklı API**: CoinGecko, Binance, Kraken, CoinPaprika, CoinStats, CryptoCompare
+- **9 farklı API**: CoinGecko, Binance, Kraken, CoinPaprika, CoinStats, CryptoCompare, **Bybit, KuCoin, Uniswap**
 - **Çoklu kaynak**: Fiyat karşılaştırması ve güvenilirlik
+- **DeFi entegrasyonu**: Uniswap v3 subgraph ile token fiyatları
 - **Graceful degradation**: Bir API down olursa otomatik alternatif
 
 ### 📊 Teknik Analiz
@@ -20,17 +21,20 @@ Crypto_MCP, yerel bir LLM'in (Large Language Model) dış dünyaya kapalı yapı
 - **Bollinger Bands**: Volatilite ve destek/direnç seviyeleri
 - **Moving Averages**: Trend belirleme (20, 50, 100 günlük)
 - **Support/Resistance**: Otomatik seviye tespiti
+- **Grafik görselleştirme**: Matplotlib ile interaktif chart'lar
 
 ### 📈 Portföy Yönetimi
 - **Performans takibi**: P&L analizi ve getiri hesaplaması
 - **Risk metrikleri**: Volatility, Sharpe ratio, maximum drawdown
 - **Korelasyon analizi**: Varlık ilişkilerini inceleme
 - **Rebalancing önerileri**: Portföy optimizasyonu
+- **SQLite veritabanı**: Portföy ve fiyat geçmişi saklama
 
 ### 📰 Haber & Piyasa
 - **Güncel haberler**: CryptoCompare API entegrasyonu
 - **Piyasa özeti**: Top 10 coin analizi
 - **Sentiment analizi**: Piyasa duyarlılığı
+- **Real-time izleme**: Canlı fiyat takibi ve alert'ler
 
 ### ⚡ Performans & Güvenilirlik
 - **Akıllı cache**: 5 dakikalık API response cache'i
