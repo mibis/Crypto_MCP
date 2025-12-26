@@ -175,12 +175,99 @@ npx @modelcontextprotocol/inspector --config test_config.json --server crypto-mc
 
 ## 🔄 Güncellemeler
 
-```bash
-# Repository'yi güncelleyin
-git pull origin main
+### Güncelleme Kontrolü
 
+```bash
+# Mevcut versiyonu kontrol edin
+git log --oneline -5
+
+# Uzak repository'deki değişiklikleri görün
+git fetch origin
+git log --oneline HEAD..origin/master
+```
+
+### Güncelleme İndirme
+
+```bash
+# En son değişiklikleri indirin
+git pull origin master
+
+# Eğer conflict olursa, değişikliklerinizi stash edin
+git stash
+git pull origin master
+git stash pop
+```
+
+### Bağımlılık Güncellemeleri
+
+```bash
 # Yeni bağımlılıkları yükleyin
 pip install -r requirements.txt
+
+# Sanal ortamı güncelleyin (eğer yeni Python sürümü gerekiyorsa)
+python -m venv .venv --upgrade
+.venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+```
+
+### Yapılandırma Güncellemeleri
+
+```bash
+# Yapılandırma dosyalarını kontrol edin
+# claude_desktop_config.json veya lm_studio_config.json değiştiyse
+# yeni versiyonları kopyalayın
+
+# Claude Desktop için
+cp claude_desktop_config.json ~/Library/Application\ Support/Claude/claude_desktop_config.json  # macOS
+# veya
+cp claude_desktop_config.json %APPDATA%\Claude\claude_desktop_config.json  # Windows
+
+# LM Studio için
+cp lm_studio_config.json [LM_STUDIO_CONFIG_PATH]
+```
+
+### Test ve Doğrulama
+
+```bash
+# Güncellemeyi test edin
+python -m py_compile crypto_mcp.py
+
+# MCP bağlantısını test edin
+npx @modelcontextprotocol/inspector --config test_config.json --server crypto-mcp
+
+# CLI'yi test edin
+python crypto_mcp.py --help
+python crypto_mcp.py price bitcoin
+```
+
+### Sürüm Geçmişi
+
+- **v2.0.0**: CLI arayüzü, REST API, web dashboard, alert sistemi
+- **v1.5.0**: Portföy yönetimi, teknik analiz araçları
+- **v1.0.0**: Temel kripto veri araçları
+
+### Sorun Giderme
+
+**Güncelleme sonrası çalışmıyorsa:**
+```bash
+# Cache'i temizleyin
+pip cache purge
+
+# Tekrar yükleyin
+pip uninstall crypto-mcp -y 2>/dev/null || true
+pip install -r requirements.txt
+
+# Python path'ini kontrol edin
+python -c "import sys; print(sys.path)"
+```
+
+**MCP bağlantı sorunu:**
+```bash
+# Yapılandırma dosyasını kontrol edin
+cat claude_desktop_config.json
+
+# MCP server'ını yeniden başlatın
+# Claude Desktop/LM Studio'yu kapatıp açın
 ```
 
 ## 🛠️ Geliştirme

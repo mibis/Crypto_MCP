@@ -200,3 +200,35 @@ Bu adım:
 - Diğer özelliklerin temelini oluşturur
 
 **Hazır mısınız? Hata yönetimi sistemini birlikte geliştirmeye başlayalım!** 🚀
+
+---
+
+## 🔄 **Güncelleme Talimatları**
+
+### **Güncel Sürüm Kontrolü**
+```bash
+# Son sürümü kontrol edin
+git log --oneline -5
+
+# ROADMAP.md dosyasını inceleyin
+cat ROADMAP.md
+```
+
+### **Güncelleme Uygulama**
+```bash
+# En son değişiklikleri alın
+git pull origin master
+
+# Bağımlılıkları güncelleyin
+pip install -r requirements.txt
+
+# Yeni özellikleri test edin
+python crypto_mcp.py --help
+```
+
+### **Sürüm Geçmişi**
+- **v2.0.0**: Kullanıcı deneyimi iyileştirmeleri (CLI, REST API, Web Dashboard, Alert sistemi)
+- **v1.5.0**: Portföy yönetimi ve gelişmiş teknik analiz
+- **v1.2.0**: Finansal analiz araçları
+- **v1.1.0**: Güvenilirlik ve performans iyileştirmeleri
+- **v1.0.0**: Temel kripto veri araçları

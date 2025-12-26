@@ -2,7 +2,33 @@
 
 Bu dosya, Crypto_MCP araçlarını kullanmak için örnek kullanıcı sorgularını içerir.
 
-## 📊 Fiyat Sorgulama Örnekleri
+## � Güncelleme ve Bakım
+
+### Güncelleme Kontrolü
+```
+"Crypto_MCP'de yeni güncellemeler var mı?"
+"Are there any updates available for Crypto_MCP?"
+"Son sürüm nedir?"
+"What is the latest version?"
+```
+
+### Güncelleme Uygulama
+```
+"Crypto_MCP'yi güncelle"
+"Update Crypto_MCP to latest version"
+"Git pull ile güncellemeleri al"
+"Pull latest changes from repository"
+```
+
+### Sistem Durumu Kontrolü
+```
+"Crypto_MCP çalışıyor mu?"
+"Is Crypto_MCP running properly?"
+"API bağlantısı sağlıklı mı?"
+"Is the API connection healthy?"
+```
+
+## �📊 Fiyat Sorgulama Örnekleri
 
 ### Basit Fiyat Sorguları
 ```
