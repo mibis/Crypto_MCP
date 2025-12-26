@@ -363,12 +363,31 @@ Bu proje, Model Context Protocol (MCP) kullanarak yerel LLM'lerin kripto piyasas
    pip install -r requirements.txt
    ```
 
-## Çalıştırma
-
-MCP server'ını başlatmak için:
 ```bash
-python crypto_mcp.py
+# MCP server'ını başlatmak için (REST API ve Alert Monitor ile birlikte)
+python crypto_mcp.py --server
 ```
+
+LLM'ler bu `---server` komutu ile başlatılan `crypto_mcp.py` uygulamasının sunduğu REST API uç noktalarına HTTP istekleri göndererek veya doğrudan MCP araçlarını çağırarak etkileşim kurabilirler.
+
+### REST API Etkileşimi (LLM için)
+
+LLM, `start_crypto_mcp.bat` ile başlatılan sunucunun sağladığı REST API'ye `fetch_webpage` veya benzeri HTTP çağrıları yapabilen araçlar aracılığıyla erişebilir.
+
+**Örnek API Çağrıları:**
+- **Fiyat Sorgulama:** `GET http://localhost:5000/api/prices/bitcoin`
+- **Piyasa Özeti:** `GET http://localhost:5000/api/market`
+- **Portföy Ekleme:** `POST http://localhost:5000/api/portfolio` (body: `{"coin_id": "ethereum", "amount": 1.5, "purchase_price": 3000}`)
+
+### MCP Araçları Etkileşimi (LLM için)
+
+LLM, doğrudan FastMCP entegrasyonu sayesinde `crypto_mcp.py` içinde tanımlanmış `@mcp.tool()` ile işaretlenmiş fonksiyonları çağırabilir. Örneğin:
+
+- `get_crypto_price(coin_name='bitcoin')`
+- `create_price_alert(coin_id='ethereum', target_price=4000, condition='above')`
+- `list_active_alerts()`
+
+Bu sayede LLM hem CLI komutlarını, hem REST API'yi hem de MCP araçlarını kullanarak kripto piyasası hakkında bilgi alabilir, analiz yapabilir ve işlem gerçekleştirebilir.
 
 ## Araçlar (Tools)
 

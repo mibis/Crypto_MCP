@@ -273,7 +273,7 @@ Bu dosya, Crypto_MCP araçlarını kullanmak için örnek kullanıcı sorguları
 "Start real-time price monitoring for ETH"
 ```
 
-## 🎨 Stage 4: Kullanıcı Deneyimi
+## � Stage 4: Kullanıcı Deneyimi
 
 ### Rich CLI Komutları
 ```
@@ -294,18 +294,45 @@ python crypto_mcp.py monitor bitcoin --interval 30 --duration 2
 python crypto_mcp.py alert --create bitcoin 50000 above
 python crypto_mcp.py alert --list
 python crypto_mcp.py alert --check
+
+# Server modunda başlatma
+python crypto_mcp.py --server
 ```
 
-### REST API Endpoints
+### REST API Endpoints (LLM'ler tarafından kullanılabilir)
 ```
-GET  /api/health              - Sistem durumu
-GET  /api/prices/<coin>       - Tek coin fiyatı
-GET  /api/prices?coins=a,b,c  - Çoklu coin fiyatları
-GET  /api/market              - Piyasa özeti
-GET  /api/portfolio           - Portföy verileri
-POST /api/portfolio           - Portföy ekleme
-GET  /api/technical/<coin>    - Teknik analiz
-GET  /api/chart/<coin>        - Grafik oluşturma
+# Server'ı başlattıktan sonra LLM bu endpoint'leri çağırabilir:
+GET  http://localhost:5000/api/health              - Sistem durumu
+GET  http://localhost:5000/api/prices/<coin>       - Tek coin fiyatı (örn: /api/prices/bitcoin)
+GET  http://localhost:5000/api/prices?coins=a,b,c  - Çoklu coin fiyatları (örn: /api/prices?coins=bitcoin,ethereum)
+GET  http://localhost:5000/api/market              - Piyasa özeti
+GET  http://localhost:5000/api/portfolio           - Portföy verileri
+POST http://localhost:5000/api/portfolio           - Portföy ekleme (örn: {"coin_id": "ethereum", "amount": 1.5, "purchase_price": 3000})
+GET  http://localhost:5000/api/technical/<coin>    - Teknik analiz
+GET  http://localhost:5000/api/chart/<coin>        - Grafik oluşturma
+```
+
+### LLM İçin Örnek Sorgular (MCP Araçları ile)
+```
+# Fiyat sorgulama
+"Bitcoin'in güncel fiyatı nedir?"
+"get_crypto_price(coin_name='bitcoin')"
+
+# Alert oluşturma
+"Ethereum için 4000 doların üzerinde bir fiyat alarmı oluştur"
+"create_price_alert(coin_id='ethereum', target_price=4000, condition='above')"
+
+# Aktif alarmları listele
+"Aktif fiyat alarmlarını göster"
+"list_active_alerts()"
+
+# Piyasa analizi
+"Piyasa genel görünümünü al"
+"market_analysis()"
+
+# Portföye varlık ekleme
+"Portföyüme 0.1 BNB ekle, alış fiyatı 300 dolar"
+"save_portfolio_to_db(coin_id='binancecoin', amount=0.1, purchase_price=300)"
 ```
 
 ### Web Dashboard Kullanımı
